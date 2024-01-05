@@ -1,2 +1,22 @@
-<ng-floating-ui-nx-welcome></ng-floating-ui-nx-welcome>
-<router-outlet></router-outlet>
+
+<div
+  floating="123"
+>i can float</div>
+
+<hr>
+
+<div
+  [floating]="123"
+>number</div>
+<hr>
+<div
+  [floating]="tplRef"
+>tpl</div>
+<hr>
+<div
+  [floating]="component"
+>cmp</div>
+<hr>
+<ng-template #tplRef>
+  <b>bold</b> boy
+</ng-template>

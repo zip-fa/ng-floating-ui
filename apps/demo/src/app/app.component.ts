@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcomeComponent } from './nx-welcome.component';
+
+import { FloatingDirective } from '@zip-fa/ng-floating-ui';
+import { TestComponent } from './test.component';
 
 @Component({
   standalone: true,
-  imports: [NxWelcomeComponent, RouterModule],
+  imports: [FloatingDirective],
   selector: 'ng-floating-ui-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  title = 'demo';
+  public readonly component = TestComponent;
 }
