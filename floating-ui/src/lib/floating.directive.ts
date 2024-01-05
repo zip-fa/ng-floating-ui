@@ -4,7 +4,7 @@ import {
   ApplicationRef,
   ComponentRef,
   createComponent,
-  Directive, effect,
+  Directive,
   ElementRef,
   EmbeddedViewRef,
   EnvironmentInjector,
@@ -12,12 +12,13 @@ import {
   Input,
   NgZone,
   OnDestroy,
-  Renderer2, signal,
+  Renderer2,
+  signal,
   TemplateRef,
   Type,
   ViewContainerRef
 } from '@angular/core';
-import { arrow, autoUpdate, computePosition, flip } from '@floating-ui/dom';
+import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { DOCUMENT } from '@angular/common';
 import { supportsMouseEvents, supportsPassiveListeners } from './helpers';
 
@@ -178,7 +179,9 @@ export class FloatingDirective implements OnDestroy {
     const [tooltipEl, arrowEl] = this.createElement();
     const options = {
       middleware: [
+        offset(6),
         flip(),
+        shift(),
         arrow({ element: arrowEl })
       ],
     };
@@ -187,11 +190,29 @@ export class FloatingDirective implements OnDestroy {
       nativeElement,
       tooltipEl,
       () => {
-        console.log('autoupdate called');
-
         computePosition(nativeElement, tooltipEl, options)
-          .then((data) => {
-            console.log(data);
+          .then(({ x, y, placement, middlewareData }) => {
+            Object.assign(tooltipEl.style, {
+              left: `${ x }px`,
+              top: `${ y }px`,
+            });
+
+            const { x: arrowX, y: arrowY } = middlewareData.arrow!;
+
+            const staticSide = {
+              top: 'bottom',
+              right: 'left',
+              bottom: 'top',
+              left: 'right',
+            }[placement.split('-')[0]];
+
+            Object.assign(arrowEl.style, {
+              left: arrowX != null ? `${arrowX}px` : '',
+              top: arrowY != null ? `${arrowY}px` : '',
+              right: '',
+              bottom: '',
+              [staticSide!]: '-4px',
+            });
           });
       },
       { animationFrame: true }
