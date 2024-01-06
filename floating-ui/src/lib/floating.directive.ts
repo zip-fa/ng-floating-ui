@@ -80,6 +80,9 @@ export class FloatingDirective implements OnDestroy {
   @Input()
   public disabled = false;
 
+  @Input()
+  public isManual = false;
+
   public readonly isVisible = computed(() => this._isVisible());
   private readonly _isVisible = signal<boolean>(false);
 
@@ -91,8 +94,12 @@ export class FloatingDirective implements OnDestroy {
   private touchstartTimeout?: number;
 
   constructor() {
+    if (this.isManual) {
+      return;
+    }
+
     afterNextRender(
-      () => this.init(),
+      () => this.setupListeners(),
       { phase: AfterRenderPhase.Write }
     );
   }
@@ -120,7 +127,7 @@ export class FloatingDirective implements OnDestroy {
     this.destroy();
   }
 
-  private init(): void {
+  private setupListeners(): void {
     this.ngZone.runOutsideAngular(() => {
       this.setupFocusAndBlurEvents();
 

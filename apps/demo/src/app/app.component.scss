@@ -1,3 +1,24 @@
-div {
-  display: inline-flex;
+.buttons-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1rem;
+  width: 33rem;
+
+  .button {
+    width: 10rem;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  margin: 5rem auto;
+  width: 120rem;
+  align-items: center;
+}
+
+hr {
+  width: 100%;
 }

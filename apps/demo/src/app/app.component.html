@@ -1,23 +1,38 @@
+<div class="container">
+  <h2>Available placements</h2>
 
-<div
-  floating="123"
-  placement="bottom-start"
->i can float</div>
+  <div class="buttons-group">
+    @for (placement of placements; track $index) {
+      <button type="button" class="button"
+        floating="Some string content"
+        [placement]="placement"
+      >
+        {{ placement }}
+      </button>
+    }
+  </div>
 
-<hr>
+  <h2>Different content types</h2>
 
-<div
-  [floating]="123"
->number</div>
-<hr>
-<div
-  [floating]="tplRef"
->tpl</div>
-<hr>
-<div
-  [floating]="component"
->cmp</div>
-<hr>
+  <div class="buttons-group">
+    <button type="button" class="button"
+      [floating]="123"
+    >
+      Number
+    </button>
+    <button type="button" class="button"
+      [floating]="tplRef"
+    >
+      Template
+    </button>
+    <button type="button" class="button"
+      [floating]="component"
+    >
+      Component
+    </button>
+  </div>
+</div>
+
 <ng-template #tplRef>
   <b>bold</b> boy
 </ng-template>
