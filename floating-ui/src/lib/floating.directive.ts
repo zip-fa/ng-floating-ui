@@ -19,20 +19,23 @@ import {
   Type,
   ViewContainerRef
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import {
   arrow,
   autoUpdate,
   computePosition,
   ComputePositionConfig,
   flip,
-  offset, OffsetOptions,
+  offset,
+  OffsetOptions,
   shift
 } from '@floating-ui/dom';
-import { DOCUMENT } from '@angular/common';
-import { supportsMouseEvents } from './helpers';
-import { FLOATING_UI_OPTIONS } from './tokens';
 import { Placement } from '@floating-ui/utils';
 import { MiddlewareData } from '@floating-ui/core';
+
+
+import { supportsMouseEvents } from './helpers';
+import { FLOATING_UI_OPTIONS } from './tokens';
 
 type TooltipContent = Type<any> | TemplateRef<any> | string | number;
 
