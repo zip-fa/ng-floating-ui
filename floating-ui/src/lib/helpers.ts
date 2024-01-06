@@ -1,7 +1,3 @@
-export function supportsPassiveListeners(): boolean {
-  return true; // TODO
-}
-
 export function supportsMouseEvents(): boolean {
   return !isIOS() && !isAndroid();
 }
