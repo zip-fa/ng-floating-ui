@@ -1,7 +1,10 @@
 import { InjectionToken, Provider } from '@angular/core';
 import { GlobalOptions } from './types';
 
-const DEFAULT_OPTIONS: GlobalOptions = {};
+const DEFAULT_OPTIONS: GlobalOptions = {
+  arrowHeight: 4,
+  arrowPadding: 5
+};
 
 export const FLOATING_UI_OPTIONS = new InjectionToken<GlobalOptions>('FLOATING_UI_OPTIONS', {
   factory: () => DEFAULT_OPTIONS

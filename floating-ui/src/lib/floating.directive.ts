@@ -2,7 +2,7 @@ import {
   afterNextRender,
   AfterRenderPhase,
   ApplicationRef,
-  ComponentRef,
+  ComponentRef, computed,
   createComponent,
   Directive,
   ElementRef,
@@ -60,10 +60,10 @@ export class FloatingDirective implements OnDestroy {
   public content!: TooltipContent;
 
   @Input()
-  public delay?: number;
+  public showDelay?: number;
 
   @Input()
-  public duration?: number;
+  public hideDelay?: number;
 
   @Input()
   public interactive?: number;
@@ -77,7 +77,14 @@ export class FloatingDirective implements OnDestroy {
   @Input()
   public offset: OffsetOptions | undefined = 6;
 
-  public readonly isVisible = signal<boolean>(false);
+  @Input()
+  public cssModifier?: string;
+
+  @Input()
+  public disabled = false;
+
+  public readonly isVisible = computed(() => this._isVisible());
+  private readonly _isVisible = signal<boolean>(false);
 
   private tooltipElRef?: HTMLElement;
   private embdedViewRef?: EmbeddedViewRef<any>;
@@ -107,12 +114,12 @@ export class FloatingDirective implements OnDestroy {
   }
 
   show(): void {
-    this.isVisible.set(true);
+    this._isVisible.set(true);
     this.render();
   }
 
   hide(): void {
-    this.isVisible.set(false);
+    this._isVisible.set(false);
     this.destroy();
   }
 
@@ -167,7 +174,7 @@ export class FloatingDirective implements OnDestroy {
     this.addListener(
       'wheel',
       (event) => {
-        if (this.isVisible()) {
+        if (this._isVisible()) {
           const elementUnderPointer = this.document.elementFromPoint(
             (event as WheelEvent).clientX,
             (event as WheelEvent).clientY
@@ -204,7 +211,7 @@ export class FloatingDirective implements OnDestroy {
   private render(): void {
     const { nativeElement } = this.elementRef;
 
-    const [tooltipEl, arrowEl] = this.createElement(true);
+    const [tooltipEl, arrowEl] = this.createElement(this.showArrow);
     const middleware: ComputePositionConfig['middleware'] = [
       flip(),
       shift()
@@ -216,9 +223,14 @@ export class FloatingDirective implements OnDestroy {
 
     if (this.showArrow) {
       middleware.push(
-        arrow({ element: arrowEl! })
+        arrow({ element: arrowEl!, padding: this.options.arrowPadding })
       );
     }
+
+    const options: ComputePositionConfig = {
+      placement: this.placement,
+      middleware
+    };
 
     this.cleanupFn = autoUpdate(
       nativeElement,
@@ -227,7 +239,7 @@ export class FloatingDirective implements OnDestroy {
         nativeElement,
         tooltipEl,
         arrowEl,
-        { middleware }
+        options
       ),
       { animationFrame: true }
     );
@@ -267,12 +279,14 @@ export class FloatingDirective implements OnDestroy {
       left: 'right',
     }[tooltipSide];
 
+    console.log(tooltipSide);
+
     Object.assign(arrowEl.style, {
       left: arrowX != null ? `${ arrowX }px` : '',
       top: arrowY != null ? `${ arrowY }px` : '',
       right: '',
       bottom: '',
-      [arrowSide!]: '-4px' // TODO
+      [arrowSide!]: `-${ this.options.arrowHeight }px`
     });
   }
 
