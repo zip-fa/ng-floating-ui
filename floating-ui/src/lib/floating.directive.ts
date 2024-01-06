@@ -1,25 +1,20 @@
 import {
-  afterNextRender,
-  AfterRenderPhase,
-  ApplicationRef,
+  AfterViewInit,
   ComponentRef,
   computed,
-  createComponent,
   Directive,
   ElementRef,
   EmbeddedViewRef,
-  EnvironmentInjector,
   inject,
   Input,
-  NgZone,
-  OnDestroy,
+  NgZone, OnChanges,
+  OnDestroy, PLATFORM_ID,
   Renderer2,
-  signal,
+  signal, SimpleChanges,
   TemplateRef,
-  Type,
   ViewContainerRef
 } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformServer } from '@angular/common';
 import {
   arrow,
   autoUpdate,
@@ -35,26 +30,29 @@ import { MiddlewareData } from '@floating-ui/core';
 
 import { supportsMouseEvents } from './helpers';
 import { FLOATING_UI_OPTIONS } from './tokens';
+import { TooltipTrigger } from './types';
 
-type TooltipContent = Type<any> | TemplateRef<any> | string | number;
+type TooltipContent = TemplateRef<any> | string | number;
 
 @Directive({
   selector: '[floating]',
   exportAs: 'floating',
   standalone: true
 })
-export class FloatingDirective implements OnDestroy {
+export class FloatingDirective implements AfterViewInit, OnDestroy, OnChanges {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly vcr = inject(ViewContainerRef);
   private readonly renderer = inject(Renderer2);
   private readonly ngZone = inject(NgZone);
   private readonly document = inject(DOCUMENT);
-  private readonly appRef = inject(ApplicationRef);
-  private readonly envInjector = inject(EnvironmentInjector);
   private readonly options = inject(FLOATING_UI_OPTIONS);
+  private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
   @Input({ alias: 'floating', required: true })
   public content!: TooltipContent;
+
+  @Input()
+  public trigger: TooltipTrigger = 'hover';
 
   @Input()
   public showDelay?: number;
@@ -81,7 +79,7 @@ export class FloatingDirective implements OnDestroy {
   public disabled = false;
 
   @Input()
-  public isManual = false;
+  public manual = false;
 
   public readonly isVisible = computed(() => this._isVisible());
   private readonly _isVisible = signal<boolean>(false);
@@ -93,50 +91,76 @@ export class FloatingDirective implements OnDestroy {
   private eventListeners: Parameters<typeof HTMLElement.prototype['addEventListener']>[] = [];
   private touchstartTimeout?: number;
 
-  constructor() {
-    if (this.isManual) {
+  ngAfterViewInit(): void {
+    if (this.manual || this.isServer || this.disabled) {
       return;
     }
 
-    afterNextRender(
-      () => this.setupListeners(),
-      { phase: AfterRenderPhase.Write }
-    );
+    this.setupListeners();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['disabled'] && !changes['disabled'].firstChange) {
+      if (this.manual || this.isServer) {
+        return;
+      }
+
+      if (this.disabled) {
+        if (this._isVisible()) {
+          this.destroy();
+        }
+
+        this.removeListeners();
+      } else {
+        this.setupListeners();
+      }
+    }
   }
 
   ngOnDestroy(): void {
     this.destroy();
+    this.removeListeners();
+  }
 
-    this.eventListeners.forEach((listener) => {
-      this.elementRef.nativeElement
-        .removeEventListener(
-          listener[0],
-          listener[1],
-          listener[2]
-        );
-    });
+  toggle(): void {
+    if (this._isVisible()) {
+      this.hide();
+    } else {
+      this.show();
+    }
   }
 
   show(): void {
+    if (this._isVisible()) {
+      return;
+    }
+
     this._isVisible.set(true);
+    this.destroy();
     this.render();
   }
 
   hide(): void {
+    if (!this._isVisible()) {
+      return;
+    }
+
     this._isVisible.set(false);
     this.destroy();
   }
 
   private setupListeners(): void {
     this.ngZone.runOutsideAngular(() => {
-      this.setupFocusAndBlurEvents();
-
-      if (supportsMouseEvents()) {
-        this.setupMouseEnterEvents();
-        this.setupMouseExitEvents();
+      if (this.trigger === 'click') {
+        this.setupClickEvents();
       } else {
-        this.setupTouchEnterEvents();
-        this.setupTouchExitEvents();
+        this.setupFocusAndBlurEvents();
+
+        if (supportsMouseEvents()) {
+          this.setupMouseEvents();
+        } else {
+          this.setupTouchEvents();
+        }
       }
 
       this.eventListeners.forEach((listener) => {
@@ -151,29 +175,19 @@ export class FloatingDirective implements OnDestroy {
     this.addListener('blur', () => this.hide());
   }
 
-  private setupMouseEnterEvents(): void {
+  private setupClickEvents(): void {
+    this.addListener(
+      'click',
+      () => this.toggle()
+    );
+  }
+
+  private setupMouseEvents(): void {
     this.addListener(
       'mouseenter',
       () => this.show()
     );
-  }
 
-  private setupTouchEnterEvents(): void {
-    this.disableNativeGestures();
-    this.addListener(
-      'touchstart',
-      () => {
-        clearTimeout(this.touchstartTimeout);
-
-        this.touchstartTimeout = setTimeout(
-          () => this.show(),
-          this.options.longPressDelay
-        );
-      },
-    );
-  }
-
-  private setupMouseExitEvents(): void {
     this.addListener(
       'mouseleave',
       () => this.hide()
@@ -202,7 +216,20 @@ export class FloatingDirective implements OnDestroy {
     );
   }
 
-  private setupTouchExitEvents(): void {
+  private setupTouchEvents(): void {
+    this.disableNativeGestures();
+    this.addListener(
+      'touchstart',
+      () => {
+        clearTimeout(this.touchstartTimeout);
+
+        this.touchstartTimeout = setTimeout(
+          () => this.show(),
+          this.options.longPressDelay
+        );
+      },
+    );
+
     const touchendListener = () => {
       clearTimeout(this.touchstartTimeout);
       this.hide();
@@ -287,8 +314,6 @@ export class FloatingDirective implements OnDestroy {
       left: 'right',
     }[tooltipSide];
 
-    console.log(tooltipSide);
-
     Object.assign(arrowEl.style, {
       left: arrowX != null ? `${ arrowX }px` : '',
       top: arrowY != null ? `${ arrowY }px` : '',
@@ -299,26 +324,27 @@ export class FloatingDirective implements OnDestroy {
   }
 
   private createElement(createArrow: boolean): [HTMLElement, HTMLElement | undefined] {
-    const tooltipEl = this.createEl('floating-tooltip');
+    const tooltipClassNames = ['floating-tooltip'];
+
+    if (this.cssModifier) {
+      tooltipClassNames.push(`floating-tooltip_${ this.cssModifier }`);
+    }
+
+    const tooltipEl = this.createEl(tooltipClassNames);
     const tooltipContent = this.createEl('floating-tooltip__content');
 
     this.renderer.setAttribute(tooltipEl, 'tabindex', '-1');
 
     if (this.content instanceof TemplateRef) {
-      this.embdedViewRef = this.vcr.createEmbeddedView(this.content, { $implicit: 123 });
+      this.embdedViewRef = this.vcr.createEmbeddedView(this.content, {
+        $implicit: () => this.hide()
+      });
 
       this.embdedViewRef.rootNodes.forEach((node) => {
         this.renderer.appendChild(tooltipContent, node);
       });
-    } else if(typeof this.content === 'string' || typeof this.content === 'number') {
-      tooltipContent.textContent = String(this.content);
     } else {
-      this.componentRef = createComponent(this.content, {
-        environmentInjector: this.envInjector
-      });
-
-      this.appRef.attachView(this.componentRef.hostView);
-      this.renderer.appendChild(tooltipContent, this.componentRef.location.nativeElement);
+      tooltipContent.textContent = String(this.content);
     }
 
     let arrowEl: HTMLElement | undefined;
@@ -335,9 +361,14 @@ export class FloatingDirective implements OnDestroy {
     return [tooltipEl, arrowEl];
   }
 
-  private createEl(className: string): HTMLElement {
+  private createEl(className: string | string[]): HTMLElement {
     const el = this.renderer.createElement('div');
-    this.renderer.addClass(el, className);
+
+    if(typeof className === 'string') {
+      this.renderer.addClass(el, className);
+    } else {
+      className.forEach((name) => this.renderer.addClass(el, name));
+    }
 
     return el;
   }
@@ -373,5 +404,16 @@ export class FloatingDirective implements OnDestroy {
     this.tooltipElRef && this.tooltipElRef.remove();
     this.cleanupFn && this.cleanupFn();
     clearTimeout(this.touchstartTimeout);
+  }
+
+  private removeListeners(): void {
+    this.eventListeners.forEach((listener) => {
+      this.elementRef.nativeElement
+        .removeEventListener(
+          listener[0],
+          listener[1],
+          listener[2]
+        );
+    });
   }
 }

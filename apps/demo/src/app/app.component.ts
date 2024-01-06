@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 import { FloatingDirective } from '@zip-fa/ng-floating-ui';
 import { TestComponent } from './test.component';
@@ -6,14 +6,12 @@ import { Placement } from '@floating-ui/dom';
 
 @Component({
   standalone: true,
-  imports: [FloatingDirective],
+  imports: [FloatingDirective, TestComponent],
   selector: 'ng-floating-ui-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  public readonly component = TestComponent;
-
   public readonly placements: Placement[] = [
     'top',
     'right',
@@ -28,4 +26,10 @@ export class AppComponent {
     'left-end',
     'left-start'
   ];
+
+  public readonly disabled = signal<boolean>(true);
+
+  toggleDisabled(): void {
+    this.disabled.update((value) => !value);
+  }
 }

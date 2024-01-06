@@ -1,0 +1,40 @@
+/** TOOLTIP **/
+.floating-tooltip {
+  width: max-content;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #222;
+  color: white;
+  font-weight: bold;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 90%;
+
+  &__arrow {
+    position: absolute;
+    background: #222;
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+  }
+}
+
+.floating-tooltip_gradient {
+  background: linear-gradient(130deg, #507bf4, #ff8bcb);
+  box-shadow: 0 8px 12px #402860;
+  font-weight: bold;
+}
+
+.floating-tooltip_retro {
+  background: beige;
+  border: 2px solid tomato;
+  color: tomato;
+  font-weight: bold;
+}
+
+.floating-tooltip_forest {
+  background: linear-gradient(90deg, #9fe597, #cce581);
+  color: #683b33;
+  font-weight: bold;
+}

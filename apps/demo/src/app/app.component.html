@@ -26,13 +26,90 @@
       Template
     </button>
     <button type="button" class="button"
-      [floating]="component"
+      [floating]="cmpTemplate"
     >
       Component
+    </button>
+  </div>
+
+  <h2>Manual hide/close</h2>
+
+  <div class="buttons-group buttons-group_flex">
+    <button type="button" class="button"
+      (click)="manualRef.toggle()"
+    >
+      {{ manualRef.isVisible() ? 'Hide' : 'Show' }}
+    </button>
+
+    <button type="button" class="button"
+      #manualRef="floating"
+      [floating]="123"
+      [manual]="true"
+    >
+      Use left button
+    </button>
+  </div>
+
+  <h2>Disable/Enable tooltip</h2>
+
+  <div class="buttons-group buttons-group_flex">
+    <button type="button" class="button"
+      (click)="toggleDisabled()"
+    >
+      {{ disabled() ? 'Enable tooltip' : 'Disable tooltip' }}
+    </button>
+
+    <button type="button" class="button"
+      floating="You see me, right?"
+      [disabled]="disabled()"
+    >
+      Try to trigger me
+    </button>
+  </div>
+
+  <h2>Click trigger (with esc support)</h2>
+
+  <div class="buttons-group buttons-group_flex">
+    <button type="button" class="button"
+      floating="You baited again"
+      trigger="click"
+    >
+      Click me
+    </button>
+  </div>
+
+  <h2>Customization</h2>
+
+  <div class="buttons-group">
+    <button type="button" class="button"
+      floating="Wow, gradient theme"
+      cssModifier="gradient"
+      [showArrow]="false"
+    >
+      Gradient
+    </button>
+
+    <button type="button" class="button"
+      floating="Retro wave"
+      cssModifier="retro"
+      [showArrow]="false"
+    >
+      Retro
+    </button>
+    <button type="button" class="button"
+      floating="Forest, shhh"
+      cssModifier="forest"
+      [showArrow]="false"
+    >
+      Forest
     </button>
   </div>
 </div>
 
 <ng-template #tplRef>
   <b>bold</b> boy
+</ng-template>
+
+<ng-template #cmpTemplate>
+  <test-component />
 </ng-template>

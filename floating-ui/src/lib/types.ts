@@ -7,3 +7,5 @@ export type GlobalOptions = {
    */
   longPressDelay: number;
 };
+
+export type TooltipTrigger = 'click' | 'hover';

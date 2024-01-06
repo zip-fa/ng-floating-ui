@@ -1,9 +1,17 @@
 .buttons-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
   gap: 1rem;
   width: 33rem;
+
+  &_flex {
+    display: flex;
+
+    .button {
+      width: auto;
+      flex: 1;
+    }
+  }
 
   .button {
     width: 10rem;
