@@ -38,12 +38,6 @@ import { FLOATING_UI_OPTIONS } from './tokens';
 
 type TooltipContent = Type<any> | TemplateRef<any> | string | number;
 
-/**
- * Time between the user putting the pointer on a tooltip
- * trigger and the long press event being fired.
- */
-const LONGPRESS_DELAY = 500;
-
 @Directive({
   selector: '[floating]',
   exportAs: 'floating',
@@ -163,7 +157,11 @@ export class FloatingDirective implements OnDestroy {
       'touchstart',
       () => {
         clearTimeout(this.touchstartTimeout);
-        this.touchstartTimeout = setTimeout(() => this.show(), LONGPRESS_DELAY);
+
+        this.touchstartTimeout = setTimeout(
+          () => this.show(),
+          this.options.longPressDelay
+        );
       },
     );
   }

@@ -3,7 +3,8 @@ import { GlobalOptions } from './types';
 
 const DEFAULT_OPTIONS: GlobalOptions = {
   arrowHeight: 4,
-  arrowPadding: 5
+  arrowPadding: 5,
+  longPressDelay: 500
 };
 
 export const FLOATING_UI_OPTIONS = new InjectionToken<GlobalOptions>('FLOATING_UI_OPTIONS', {
