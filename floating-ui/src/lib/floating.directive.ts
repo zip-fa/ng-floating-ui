@@ -33,7 +33,6 @@ import {
 import { Placement } from '@floating-ui/utils';
 import { MiddlewareData } from '@floating-ui/core';
 
-
 import { supportsMouseEvents } from './helpers';
 import { FLOATING_UI_OPTIONS } from './tokens';
 
